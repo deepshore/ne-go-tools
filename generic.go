@@ -9,7 +9,7 @@ import (
 )
 
 func CRC32Checksum(s string) string {
-	table := crc32.MakeTable(crc32.Castagnoli)
+	table := crc32.MakeTable(crc32.IEEE) // ISO 3309 (HDLC) polynomial
 	checksum := crc32.Checksum([]byte(s), table)
 	return fmt.Sprintf("%X", checksum)
 }
