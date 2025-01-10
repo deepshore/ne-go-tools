@@ -8,12 +8,16 @@ import (
 	passwordGenerator "github.com/m1/go-generate-password/generator"
 )
 
+// Calculates the CRC32 checksum (using the ISO 3309-HDLC polynomial setting)
+// of a string and returns the resulting number as uppercase HEX string.
 func CRC32Checksum(s string) string {
 	table := crc32.MakeTable(crc32.IEEE) // ISO 3309 (HDLC) polynomial
 	checksum := crc32.Checksum([]byte(s), table)
 	return fmt.Sprintf("%X", checksum)
 }
 
+// Generates a password of given length, optionally in-/excluding ambigous
+// characters ("<>[](){}:;'/|\\,") which can cause issues in some applications
 func GeneratePassword(length uint, excludeAmbiguousChars bool) (password string, err error) {
 
 	config := passwordGenerator.Config{

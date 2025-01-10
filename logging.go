@@ -7,6 +7,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func SetLoglevel(logLevel string) (err error) {
+	level, err := log.ParseLevel(logLevel)
+	if err != nil {
+		log.Fatalf("Invalid log level: %v", err)
+		return
+	}
+	log.SetLevel(level)
+	return
+}
+
 // stripPath removes the package path prefix from the function name
 func stripPath(fullName string) string {
 	parts := strings.Split(fullName, "/")
@@ -18,6 +28,22 @@ func GetFunctionName(functionLvl int) string {
 	// pc = program counter
 	pc, _, _, _ := runtime.Caller(functionLvl)
 	return stripPath(runtime.FuncForPC(pc).Name())
+}
+
+// debugLog logs debug messages with contextual information.
+func LogTrace(message string, fields ...interface{}) {
+	logFields := log.Fields{
+		"Function": GetFunctionName(2),
+	}
+	for i := 0; i < len(fields); i += 2 {
+		key, ok := fields[i].(string)
+		if !ok {
+			continue
+		}
+		value := fields[i+1]
+		logFields[key] = value
+	}
+	log.WithFields(logFields).Debug(message)
 }
 
 // debugLog logs debug messages with contextual information.
