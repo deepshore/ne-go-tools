@@ -90,7 +90,7 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 		},
 	}
 	//
-	var envVars []corev1.EnvVar = make([]corev1.EnvVar, len(config.EnvVarData))
+	var envVars []corev1.EnvVar = []corev1.EnvVar{}
 	for key, value := range config.EnvVarData {
 		LogTrace(fmt.Sprintf("Adding ENV %q=%q to DeploymentSpec", key, value))
 		envVars = append(envVars, corev1.EnvVar{Name: key, Value: value})
@@ -265,9 +265,9 @@ func GeneratePushSecret(
 	}
 
 	var pushSecretData []externalsecretsv1alpha1.PushSecretData = make([]externalsecretsv1alpha1.PushSecretData, len(keys))
-	for _, key := range keys {
+	for idx, key := range keys {
 		LogTrace(fmt.Sprintf("Adding PushSecretMatch for SecretKey %q\n", key))
-		pushSecretData = append(pushSecretData, externalsecretsv1alpha1.PushSecretData{
+		pushSecretData[idx] = externalsecretsv1alpha1.PushSecretData{
 			Match: externalsecretsv1alpha1.PushSecretMatch{
 				SecretKey: key,
 				RemoteRef: externalsecretsv1alpha1.PushSecretRemoteRef{
@@ -275,7 +275,7 @@ func GeneratePushSecret(
 					Property:  key,
 				},
 			},
-		})
+		}
 	}
 
 	var pushSecret externalsecretsv1alpha1.PushSecret = externalsecretsv1alpha1.PushSecret{
@@ -303,7 +303,7 @@ func GenerateExternalSecret(
 	externalSecretKeyMapping map[string]string,
 ) externalsecretsv1alpha1.ExternalSecret {
 
-	var externalSecretDataSpec []externalsecretsv1alpha1.ExternalSecretData = make([]externalsecretsv1alpha1.ExternalSecretData, len(externalSecretKeyMapping))
+	var externalSecretDataSpec []externalsecretsv1alpha1.ExternalSecretData = []externalsecretsv1alpha1.ExternalSecretData{}
 	for localKey, remoteKey := range externalSecretKeyMapping {
 		LogTrace(fmt.Sprintf("Adding ExternalSecretDataRemoteRef for LocalKey %q, RemoteKey %q\n", localKey, remoteKey))
 		externalSecretDataSpec = append(externalSecretDataSpec, externalsecretsv1alpha1.ExternalSecretData{
