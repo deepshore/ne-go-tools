@@ -3,6 +3,8 @@ package negotools
 // wrapper for creating commonly used k8s structs
 
 import (
+	"fmt"
+
 	externalsecretsv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -90,6 +92,7 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 	//
 	var envVars []corev1.EnvVar = make([]corev1.EnvVar, len(config.EnvVarData))
 	for key, value := range config.EnvVarData {
+		LogTrace(fmt.Sprintf("Adding ENV %q=%q to DeploymentSpec", key, value))
 		envVars = append(envVars, corev1.EnvVar{Name: key, Value: value})
 	}
 	var secretEnvSrc corev1.SecretEnvSource = corev1.SecretEnvSource{
@@ -263,6 +266,7 @@ func GeneratePushSecret(
 
 	var pushSecretData []externalsecretsv1alpha1.PushSecretData = make([]externalsecretsv1alpha1.PushSecretData, len(keys))
 	for _, key := range keys {
+		LogTrace(fmt.Sprintf("Adding PushSecretMatch for SecretKey %q\n", key))
 		pushSecretData = append(pushSecretData, externalsecretsv1alpha1.PushSecretData{
 			Match: externalsecretsv1alpha1.PushSecretMatch{
 				SecretKey: key,
@@ -301,6 +305,7 @@ func GenerateExternalSecret(
 
 	var externalSecretDataSpec []externalsecretsv1alpha1.ExternalSecretData = make([]externalsecretsv1alpha1.ExternalSecretData, len(externalSecretKeyMapping))
 	for localKey, remoteKey := range externalSecretKeyMapping {
+		LogTrace(fmt.Sprintf("Adding ExternalSecretDataRemoteRef for LocalKey %q, RemoteKey %q\n", localKey, remoteKey))
 		externalSecretDataSpec = append(externalSecretDataSpec, externalsecretsv1alpha1.ExternalSecretData{
 			SecretKey: localKey,
 			RemoteRef: externalsecretsv1alpha1.ExternalSecretDataRemoteRef{
