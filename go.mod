@@ -9,6 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stackitcloud/stackit-sdk-go/services/objectstorage v0.11.1
 	github.com/stretchr/testify v1.10.0
+	gitlab.com/avarf/getenvs v1.0.1
 	k8s.io/api v0.32.0
 	k8s.io/apimachinery v0.32.0
 )

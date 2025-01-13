@@ -267,15 +267,17 @@ func GeneratePushSecret(
 	var pushSecretData []externalsecretsv1alpha1.PushSecretData = make([]externalsecretsv1alpha1.PushSecretData, len(keys))
 	for idx, key := range keys {
 		LogTrace(fmt.Sprintf("Adding PushSecretMatch for SecretKey %q\n", key))
-		pushSecretData[idx] = externalsecretsv1alpha1.PushSecretData{
-			Match: externalsecretsv1alpha1.PushSecretMatch{
-				SecretKey: key,
-				RemoteRef: externalsecretsv1alpha1.PushSecretRemoteRef{
-					RemoteKey: targetSecretName,
-					Property:  key,
-				},
-			},
+		var reference externalsecretsv1alpha1.PushSecretRemoteRef = externalsecretsv1alpha1.PushSecretRemoteRef{
+			RemoteKey: targetSecretName,
+			Property:  key,
 		}
+		LogTrace(fmt.Sprintf("PushSecretRemoteReference: %v", reference))
+		var match externalsecretsv1alpha1.PushSecretMatch = externalsecretsv1alpha1.PushSecretMatch{
+			SecretKey: key,
+			RemoteRef: reference,
+		}
+		LogTrace(fmt.Sprintf("PushSecretMatch: %v", match))
+		pushSecretData[idx] = externalsecretsv1alpha1.PushSecretData{Match: match}
 	}
 
 	var pushSecret externalsecretsv1alpha1.PushSecret = externalsecretsv1alpha1.PushSecret{
