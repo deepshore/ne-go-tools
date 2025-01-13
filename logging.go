@@ -43,7 +43,7 @@ func LogTrace(message string, fields ...interface{}) {
 		value := fields[i+1]
 		logFields[key] = value
 	}
-	log.WithFields(logFields).Debug(message)
+	log.WithFields(logFields).Trace(message)
 }
 
 // debugLog logs debug messages with contextual information.
