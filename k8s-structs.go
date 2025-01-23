@@ -61,8 +61,8 @@ type DeploymentConfig struct {
 	ContainerName              string
 	Image                      string
 	PortName                   string
-	EnvFromSecretNames         string
-	EnvFromConfigMapNames      string
+	EnvFromSecretNames         []string
+	EnvFromConfigMapNames      []string
 	VolumeMounts               []corev1.VolumeMount
 	ImagePullPolicy            corev1.PullPolicy
 	ContainerPort              int32
