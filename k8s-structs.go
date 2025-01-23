@@ -56,14 +56,14 @@ type ProbeSpec struct {
 type DeploymentConfig struct {
 	Name                       string
 	Namespace                  string
-	VolumeName                 string
+	Volumes                    []corev1.Volume
 	ImagePullSecretName        string
 	ContainerName              string
 	Image                      string
 	PortName                   string
-	EnvFromSecretName          string
-	VolumeMountPath            string
-	VolumeSubPath              string
+	EnvFromSecretNames         string
+	EnvFromConfigMapNames      string
+	VolumeMounts               []corev1.VolumeMount
 	ImagePullPolicy            corev1.PullPolicy
 	ContainerPort              int32
 	DefaultConfigMapVolumeMode int32
@@ -83,20 +83,27 @@ type DeploymentConfig struct {
 // read- and debugable
 func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 
-	var configMapVolumeSource corev1.VolumeSource = corev1.VolumeSource{
-		ConfigMap: &corev1.ConfigMapVolumeSource{
-			DefaultMode:          &config.DefaultConfigMapVolumeMode,
-			LocalObjectReference: corev1.LocalObjectReference{Name: config.VolumeName},
-		},
-	}
-	//
 	var envVars []corev1.EnvVar = []corev1.EnvVar{}
 	for key, value := range config.EnvVarData {
 		LogTrace(fmt.Sprintf("Adding ENV %q=%q to DeploymentSpec", key, value))
 		envVars = append(envVars, corev1.EnvVar{Name: key, Value: value})
 	}
-	var secretEnvSrc corev1.SecretEnvSource = corev1.SecretEnvSource{
-		LocalObjectReference: corev1.LocalObjectReference{Name: config.EnvFromSecretName},
+	var envFromSources []corev1.EnvFromSource = []corev1.EnvFromSource{}
+	for _, configMapName := range config.EnvFromConfigMapNames {
+		var ref corev1.EnvFromSource = corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: string(configMapName)},
+			},
+		}
+		envFromSources = append(envFromSources, ref)
+	}
+	for _, secretName := range config.EnvFromSecretNames {
+		var ref corev1.EnvFromSource = corev1.EnvFromSource{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: string(secretName)},
+			},
+		}
+		envFromSources = append(envFromSources, ref)
 	}
 	var cpuRequest *resource.Quantity = resource.NewMilliQuantity(config.CpuRequestMilli, resource.DecimalSI)
 	var memoryRequest *resource.Quantity = resource.NewQuantity(config.MemoryRequestMi*1024*1024, resource.BinarySI)
@@ -136,27 +143,14 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 		FailureThreshold:    config.ReadinessProbeSpec.FailureThreshold,
 		SuccessThreshold:    config.ReadinessProbeSpec.SuccessThreshold,
 	}
-	var volumeMounts []corev1.VolumeMount = []corev1.VolumeMount{{
-		Name:      config.VolumeName,
-		MountPath: config.VolumeMountPath,
-		SubPath:   config.VolumeSubPath,
-	}}
 	//
-	var volumes []corev1.Volume = []corev1.Volume{
-		{
-			Name:         config.VolumeName,
-			VolumeSource: configMapVolumeSource,
-		},
-	}
 	var containers []corev1.Container = []corev1.Container{
 		{
 			Name:            config.ContainerName,
 			Image:           config.Image,
 			ImagePullPolicy: config.ImagePullPolicy,
-			EnvFrom: []corev1.EnvFromSource{{
-				SecretRef: &secretEnvSrc,
-			}},
-			Env: envVars,
+			EnvFrom:         envFromSources,
+			Env:             envVars,
 			Resources: corev1.ResourceRequirements{
 				Limits:   resourceLimit,
 				Requests: resourceRequest,
@@ -167,7 +161,7 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 			}},
 			LivenessProbe:  &readinessProbe,
 			ReadinessProbe: &livenessProbe,
-			VolumeMounts:   volumeMounts,
+			VolumeMounts:   config.VolumeMounts,
 		},
 	}
 	//
@@ -175,7 +169,7 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 		Labels: config.PodLabels,
 	}
 	var podSpec corev1.PodSpec = corev1.PodSpec{
-		Volumes:    volumes,
+		Volumes:    config.Volumes,
 		Containers: containers,
 		ImagePullSecrets: []corev1.LocalObjectReference{{
 			Name: config.ImagePullSecretName,
