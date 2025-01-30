@@ -53,7 +53,7 @@ func GeneratePassword(length uint, excludeAmbiguousChars bool) (password string,
 func CheckGetEnvString(key string) (value string, err error) {
 	stringValue, ok := os.LookupEnv(key)
 	if !ok || stringValue == "" {
-		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty!", key)
+		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty!\n", key)
 		return "", errors.New("ValueError")
 	}
 	value = getenvs.GetEnvString(key, "")
@@ -63,7 +63,7 @@ func CheckGetEnvString(key string) (value string, err error) {
 func CheckGetEnvBool(key string) (value bool, err error) {
 	stringValue, ok := os.LookupEnv(key)
 	if !ok || stringValue == "" {
-		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.", key)
+		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.\n", key)
 		return false, errors.New("ValueError")
 	}
 	value, err = getenvs.GetEnvBool(key, false)
@@ -73,7 +73,7 @@ func CheckGetEnvBool(key string) (value bool, err error) {
 func CheckGetEnvInt(key string) (value int, err error) {
 	stringValue, ok := os.LookupEnv(key)
 	if !ok || stringValue == "" {
-		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.", key)
+		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.\n", key)
 		return 0, errors.New("ValueError")
 	}
 	value, err = getenvs.GetEnvInt(key, 0)
@@ -83,7 +83,7 @@ func CheckGetEnvInt(key string) (value int, err error) {
 func CheckGetEnvUInt(key string) (value uint, err error) {
 	stringValue, ok := os.LookupEnv(key)
 	if !ok || stringValue == "" {
-		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.", key)
+		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.\n", key)
 		return 0, errors.New("ValueError")
 	}
 	intValue, err := getenvs.GetEnvInt(key, 0)
@@ -98,7 +98,7 @@ func CheckGetEnvUInt(key string) (value uint, err error) {
 func CheckGetEnvFloat(key string) (value float64, err error) {
 	stringValue, ok := os.LookupEnv(key)
 	if !ok || stringValue == "" {
-		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.", key)
+		fmt.Fprintf(os.Stderr, "Error: ENV %q must be set and not empty.\n", key)
 		return 0, errors.New("ValueError")
 	}
 	value, err = getenvs.GetEnvFloat(key, 0.)

@@ -159,8 +159,8 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 				Name:          config.PortName,
 				ContainerPort: config.ContainerPort,
 			}},
-			LivenessProbe:  &readinessProbe,
-			ReadinessProbe: &livenessProbe,
+			LivenessProbe:  &livenessProbe,
+			ReadinessProbe: &readinessProbe,
 			VolumeMounts:   config.VolumeMounts,
 		},
 	}
@@ -203,15 +203,14 @@ func GenerateDeployment(config DeploymentConfig) appsv1.Deployment {
 
 func GenerateIngress(
 	name, namespace, dnsUri, ingressBaseUrl, serviceName, path, ingressClassName string,
-	port int32, pathType networking.PathType,
+	k8sServiceName string, pathType networking.PathType,
 ) networking.Ingress {
 
 	var ingressHost string = dnsUri + "." + ingressBaseUrl
 	var ingressService networking.IngressServiceBackend = networking.IngressServiceBackend{
-		Name: serviceName,
+		Name: k8sServiceName,
 		Port: networking.ServiceBackendPort{
-			Name:   serviceName,
-			Number: port,
+			Name: serviceName,
 		},
 	}
 	var ingressPath networking.HTTPIngressPath = networking.HTTPIngressPath{
