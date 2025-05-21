@@ -5,7 +5,6 @@ package negotools
 import (
 	"fmt"
 
-	externalsecretsv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
@@ -245,86 +244,4 @@ func GenerateIngress(
 		},
 	}
 	return ingressSpec
-}
-
-func GeneratePushSecret(
-	pushSecretName, targetSecretName, sourceSecretName, namespaceName string,
-	secretStoreName, secretStoreKind string, keys []string, refreshInterval metav1.Duration,
-) externalsecretsv1alpha1.PushSecret {
-
-	var metadata metav1.ObjectMeta = metav1.ObjectMeta{
-		Name:      pushSecretName,
-		Namespace: namespaceName,
-	}
-
-	var pushSecretData []externalsecretsv1alpha1.PushSecretData = make([]externalsecretsv1alpha1.PushSecretData, len(keys))
-	for idx, key := range keys {
-		LogTrace(fmt.Sprintf("Adding PushSecretMatch for SecretKey %q\n", key))
-		var reference externalsecretsv1alpha1.PushSecretRemoteRef = externalsecretsv1alpha1.PushSecretRemoteRef{
-			RemoteKey: targetSecretName,
-			Property:  key,
-		}
-		LogTrace(fmt.Sprintf("PushSecretRemoteReference: %v", reference))
-		var match externalsecretsv1alpha1.PushSecretMatch = externalsecretsv1alpha1.PushSecretMatch{
-			SecretKey: key,
-			RemoteRef: reference,
-		}
-		LogTrace(fmt.Sprintf("PushSecretMatch: %v", match))
-		pushSecretData[idx] = externalsecretsv1alpha1.PushSecretData{Match: match}
-	}
-
-	var pushSecret externalsecretsv1alpha1.PushSecret = externalsecretsv1alpha1.PushSecret{
-		ObjectMeta: metadata,
-		Spec: externalsecretsv1alpha1.PushSecretSpec{
-			RefreshInterval: &refreshInterval,
-			SecretStoreRefs: []externalsecretsv1alpha1.PushSecretStoreRef{
-				{
-					Name: secretStoreName,
-					Kind: secretStoreKind,
-				},
-			},
-			Selector: externalsecretsv1alpha1.PushSecretSelector{
-				Secret: &externalsecretsv1alpha1.PushSecretSecret{Name: sourceSecretName},
-			},
-			Data: pushSecretData,
-		},
-	}
-	return pushSecret
-}
-
-func GenerateExternalSecret(
-	name, namespace, secretStoreName, secretStoreKind, targetSecretName, remoteSecretName string,
-	refreshInterval metav1.Duration,
-	externalSecretKeyMapping map[string]string,
-) externalsecretsv1alpha1.ExternalSecret {
-
-	var externalSecretDataSpec []externalsecretsv1alpha1.ExternalSecretData = []externalsecretsv1alpha1.ExternalSecretData{}
-	for localKey, remoteKey := range externalSecretKeyMapping {
-		LogTrace(fmt.Sprintf("Adding ExternalSecretDataRemoteRef for LocalKey %q, RemoteKey %q\n", localKey, remoteKey))
-		externalSecretDataSpec = append(externalSecretDataSpec, externalsecretsv1alpha1.ExternalSecretData{
-			SecretKey: localKey,
-			RemoteRef: externalsecretsv1alpha1.ExternalSecretDataRemoteRef{
-				Key:      remoteSecretName,
-				Property: remoteKey,
-			},
-		})
-	}
-	var spec externalsecretsv1alpha1.ExternalSecret = externalsecretsv1alpha1.ExternalSecret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: externalsecretsv1alpha1.ExternalSecretSpec{
-			SecretStoreRef: externalsecretsv1alpha1.SecretStoreRef{
-				Name: secretStoreName,
-				Kind: secretStoreKind,
-			},
-			Target: externalsecretsv1alpha1.ExternalSecretTarget{
-				Name: targetSecretName,
-			},
-			RefreshInterval: &refreshInterval,
-			Data:            externalSecretDataSpec,
-		},
-	}
-	return spec
 }
